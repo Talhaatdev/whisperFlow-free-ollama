@@ -1,0 +1,17 @@
+[project]
+name = "whisperflow"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "faster-whisper>=1.2.1",
+    "keyboard>=0.13.5",
+    "numpy>=2.4.6",
+    "ollama>=0.6.2",
+    "pillow>=12.2.0",
+    "pyperclip>=1.11.0",
+    "pystray>=0.19.5",
+    "scipy>=1.18.0",
+    "sounddevice>=0.5.5",
+]

@@ -1,0 +1,20 @@
+# WhisperFlow dependencies
+# Install with:  pip install -r requirements.txt
+# (or, with uv:  uv sync)
+#
+# NOTE: tkinter is part of the Python standard library and is NOT installed via
+# pip. On Windows/macOS it ships with the official python.org installer.
+# On Linux install it with your package manager, e.g.:
+#   sudo apt install python3-tk
+
+faster-whisper>=1.2.1
+ollama>=0.6.2
+keyboard>=0.13.5
+pyperclip>=1.11.0
+sounddevice>=0.5.5
+scipy>=1.18.0
+numpy>=1.26
+
+# Optional (system tray icon). Safe to omit — the app runs without a tray.
+pystray>=0.19.5
+pillow>=10.0

@@ -1,0 +1,131 @@
+# WhisperFlow
+
+A local, privacy-friendly **WhisperFlow alternative**. It lives in your system
+tray, listens for a global hotkey, records your voice, transcribes it **locally**
+with Faster-Whisper, rewrites it into a clean professional AI prompt using your
+**local Ollama** model (`qwen2.5-coder:latest`), and copies the result to your clipboard.
+
+Everything runs on your machine — no audio or text leaves your computer.
+
+## How it works
+
+1. **Press `Ctrl + Shift + Z`** → a small floating microphone overlay appears and
+   recording starts.
+2. **Press `Ctrl + Shift + Z` again** → recording stops, then the app:
+   - transcribes the audio locally (Faster-Whisper),
+   - sends the transcript to Ollama (`qwen2.5-coder:latest`) to rewrite it as a polished prompt,
+   - copies the enhanced prompt to the clipboard,
+   - hides the overlay and shows a "Prompt copied!" notification.
+
+Extras included: last-10-prompts history, a system tray icon, and optional
+"start with Windows".
+
+## Project layout
+
+```
+main.py                 # entry point
+requirements.txt
+whisperflow/
+  config.py             # all settings (hotkey, model, etc.)
+  audio.py              # microphone capture (sounddevice) + WAV writer (scipy)
+  transcriber.py        # Faster-Whisper speech-to-text
+  enhancer.py           # Ollama prompt rewriting
+  overlay.py            # floating mic overlay (tkinter)
+  notifier.py           # toast notifications (tkinter)
+  history.py            # last-10 prompts, persisted to JSON
+  tray.py               # system tray icon (pystray)
+  startup.py            # optional Windows autostart (registry)
+  app.py                # orchestrator / state machine
+```
+
+## Prerequisites
+
+- **Python 3.12+**
+- **Ollama** installed and running, with the model pulled:
+  ```bash
+  ollama serve            # if not already running as a service
+  ollama pull qwen2.5-coder:latest
+  ```
+- A working **microphone**.
+
+## Installation
+
+### Option A — with uv (recommended, this repo is uv-managed)
+
+```bash
+uv sync                  # installs everything from pyproject.toml / uv.lock
+uv run python main.py
+```
+
+### Option B — with pip + venv
+
+```bash
+python -m venv .venv
+# Windows:
+.venv\Scripts\activate
+# macOS/Linux:
+source .venv/bin/activate
+
+pip install -r requirements.txt
+python main.py
+```
+
+### tkinter note
+
+`tkinter` is part of Python's standard library and **cannot be installed via
+pip** (so `uv add tkinter` / `pip install tkinter` will fail — that's expected).
+
+- **Windows / macOS**: it's bundled with the official python.org installer. ✔
+- **Linux**: install it via your package manager, e.g.
+  `sudo apt install python3-tk`.
+
+## Usage
+
+1. Make sure Ollama is running and `qwen2.5-coder:latest` is pulled.
+2. Start the app:
+   ```bash
+   uv run python main.py     # or: python main.py
+   ```
+   On startup it lists the Ollama models you have installed and asks which one to
+   use. Just enter the **number** of the model and press Enter; an invalid number
+   shows an error and re-lists your options. The first launch also downloads the
+   Whisper model (a few hundred MB) once.
+3. Press **`Ctrl + Shift + Z`** to start recording, speak, then press it again
+   to stop. The enhanced prompt is now on your clipboard — paste it anywhere.
+4. Right-click the tray icon for **Show history**, **Start with Windows**, and **Quit**.
+
+## Configuration
+
+Edit `whisperflow/config.py`:
+
+| Setting | Default | Notes |
+|---|---|---|
+| `hotkey` | `ctrl+shift+z` | `keyboard`-library syntax |
+| `whisper_model` | `base` | `tiny`/`base`/`small`/`medium`/`large-v3` |
+| `whisper_device` | `cpu` | `cuda` for NVIDIA GPU |
+| `whisper_compute_type` | `int8` | `float16` for GPU |
+| `ollama_model` | `qwen2.5-coder:latest` | any pulled Ollama model |
+| `history_size` | `10` | prompts kept in `~/.whisperflow_history.json` |
+
+## Notes & troubleshooting
+
+- **`keyboard` and global hotkeys**: on **Linux/macOS** the `keyboard` library
+  requires **root/sudo** to capture global keys. On **Windows** it works without
+  admin (admin only needed to send keys to elevated apps). This app targets
+  Windows.
+- **Ollama errors** (`Could not reach Ollama…`): start `ollama serve`. If you see
+  a model error, run `ollama pull qwen2.5-coder:latest`.
+- **No microphone / mic in use**: the app shows an error toast and stays running;
+  fix the device and try again.
+- **No tray icon**: the app still works fully; tray just requires `pystray` +
+  `pillow`.
+- Errors during transcription/enhancement are caught and shown as a toast — the
+  app never crashes on a single failed recording.
+
+## Privacy
+
+Audio is processed locally by Faster-Whisper and never uploaded. Text is sent
+only to your **local** Ollama server. The temporary WAV file is deleted after
+each transcription.
+
+
