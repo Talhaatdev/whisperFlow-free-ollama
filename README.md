@@ -2,8 +2,8 @@
 
 A local, privacy-friendly **WhisperFlow alternative**. It lives in your system
 tray, listens for a global hotkey, records your voice, transcribes it **locally**
-with Faster-Whisper, rewrites it into a clean professional AI prompt using your
-**local Ollama** model (`qwen2.5-coder:latest`), and copies the result to your clipboard.
+with Faster-Whisper, rewrites it into a clean professional AI prompt using a
+**local Ollama** model of your choice, and copies the result to your clipboard.
 
 Everything runs on your machine — no audio or text leaves your computer.
 
@@ -13,7 +13,7 @@ Everything runs on your machine — no audio or text leaves your computer.
    recording starts.
 2. **Press `Ctrl + Shift + Z` again** → recording stops, then the app:
    - transcribes the audio locally (Faster-Whisper),
-   - sends the transcript to Ollama (`qwen2.5-coder:latest`) to rewrite it as a polished prompt,
+   - sends the transcript to the Ollama model you selected to rewrite it as a polished prompt,
    - copies the enhanced prompt to the clipboard,
    - hides the overlay and shows a "Prompt copied!" notification.
 
@@ -41,10 +41,12 @@ whisperflow/
 ## Prerequisites
 
 - **Python 3.12+**
-- **Ollama** installed and running, with the model pulled:
+- **Ollama** installed and running, with at least one model pulled. Any chat
+  model works; the app lists whatever you have and lets you pick one at startup.
   ```bash
-  ollama serve            # if not already running as a service
-  ollama pull qwen2.5-coder:latest
+  ollama serve                    # if not already running as a service
+  ollama pull <model>             # e.g. ollama pull llama3.2:3b
+  ollama list                     # see the models you already have
   ```
 - A working **microphone**.
 
@@ -81,7 +83,7 @@ pip** (so `uv add tkinter` / `pip install tkinter` will fail — that's expected
 
 ## Usage
 
-1. Make sure Ollama is running and `qwen2.5-coder:latest` is pulled.
+1. Make sure Ollama is running and you have at least one model pulled.
 2. Start the app:
    ```bash
    uv run python main.py     # or: python main.py
@@ -104,7 +106,8 @@ Edit `whisperflow/config.py`:
 | `whisper_model` | `base` | `tiny`/`base`/`small`/`medium`/`large-v3` |
 | `whisper_device` | `cpu` | `cuda` for NVIDIA GPU |
 | `whisper_compute_type` | `int8` | `float16` for GPU |
-| `ollama_model` | `qwen2.5-coder:latest` | any pulled Ollama model |
+| `ollama_model` | _(chosen at startup)_ | You pick from your installed models each run; this value is only a fallback for non-interactive startup (e.g. Windows autostart) |
+| `ollama_host` | `http://localhost:11434` | local Ollama server URL |
 | `history_size` | `10` | prompts kept in `~/.whisperflow_history.json` |
 
 ## Notes & troubleshooting
@@ -113,8 +116,8 @@ Edit `whisperflow/config.py`:
   requires **root/sudo** to capture global keys. On **Windows** it works without
   admin (admin only needed to send keys to elevated apps). This app targets
   Windows.
-- **Ollama errors** (`Could not reach Ollama…`): start `ollama serve`. If you see
-  a model error, run `ollama pull qwen2.5-coder:latest`.
+- **Ollama errors** (`Could not reach Ollama…`): start `ollama serve`. If you have
+  no models installed, pull one (e.g. `ollama pull llama3.2:3b`) and restart.
 - **No microphone / mic in use**: the app shows an error toast and stays running;
   fix the device and try again.
 - **No tray icon**: the app still works fully; tray just requires `pystray` +
